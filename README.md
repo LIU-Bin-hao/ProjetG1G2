@@ -1,7 +1,4 @@
 # ProjetG1G2
-当然可以。下面是一整份 README.md 文件内容，你可以从第一行开始全部复制，然后粘贴到 GitHub 仓库里的 README.md 中。
-
-# ProjetG1G2
 
 本项目为 `simpletest_ws` 工作区中的源码部分，主要用于管理 ROS/ROS2 项目代码。  
 当前仓库建议只保存 `simpletest_ws/src` 目录下的内容，不上传编译生成文件。
