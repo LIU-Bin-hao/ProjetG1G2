@@ -1,0 +1,544 @@
+<?xml version="1.0"?>
+<robot name="simple_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ========================= -->
+  <!-- Scale parameters -->
+  <!-- ========================= -->
+  <xacro:property name="scale" value="2"/>
+  <xacro:property name="mass_scale" value="${scale * scale * scale}"/>
+  <xacro:property name="inertia_scale" value="${scale * scale * scale * scale * scale}"/>
+
+  <!-- ========================= -->
+  <!-- Parameters -->
+  <!-- ========================= -->
+  <xacro:property name="body_length" value="${1.2 * scale}"/>
+  <xacro:property name="body_width" value="${0.6 * scale}"/>
+  <xacro:property name="body_height" value="${0.2 * scale}"/>
+
+  <xacro:property name="wheel_radius" value="${0.12 * scale}"/>
+  <xacro:property name="wheel_width" value="${0.08 * scale}"/>
+
+  <xacro:property name="wheelbase" value="${0.8 * scale}"/>
+  <xacro:property name="track_width" value="${0.5 * scale}"/>
+
+  <xacro:property name="body_center_z" value="${wheel_radius + body_height / 2.0}"/>
+  <xacro:property name="wheel_z" value="${wheel_radius}"/>
+
+  <xacro:property name="laser_size" value="${0.08 * scale}"/>
+  <xacro:property name="steer_link_size" value="${0.05 * scale}"/>
+
+  <!-- Derived values -->
+  <xacro:property name="front_axle_x" value="${wheelbase / 2.0}"/>
+  <xacro:property name="rear_axle_x" value="${-wheelbase / 2.0}"/>
+  <xacro:property name="left_y" value="${track_width / 2.0}"/>
+  <xacro:property name="right_y" value="${-track_width / 2.0}"/>
+
+  <!-- ========================= -->
+  <!-- Base link -->
+  <!-- ========================= -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${body_center_z}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 ${body_center_z}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 ${body_center_z}" rpy="0 0 0"/>
+      <mass value="${20.0 * mass_scale}"/>
+      <inertia
+        ixx="${1.0 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${2.0 * inertia_scale}" iyz="0.0"
+        izz="${2.5 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <!-- ========================= -->
+  <!-- Front left steer link -->
+  <!-- ========================= -->
+  <link name="front_left_steer_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${steer_link_size} ${steer_link_size} ${steer_link_size}"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.3 0.3 0.3 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${steer_link_size} ${steer_link_size} ${steer_link_size}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${0.2 * mass_scale}"/>
+      <inertia
+        ixx="${0.001 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.001 * inertia_scale}" iyz="0.0"
+        izz="${0.001 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="front_left_steer_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_left_steer_link"/>
+    <origin xyz="${front_axle_x} ${left_y} ${wheel_z}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.6" upper="0.6" effort="20" velocity="1.5"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Front right steer link -->
+  <!-- ========================= -->
+  <link name="front_right_steer_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${steer_link_size} ${steer_link_size} ${steer_link_size}"/>
+      </geometry>
+      <material name="dark_gray"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${steer_link_size} ${steer_link_size} ${steer_link_size}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${0.2 * mass_scale}"/>
+      <inertia
+        ixx="${0.001 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.001 * inertia_scale}" iyz="0.0"
+        izz="${0.001 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="front_right_steer_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_right_steer_link"/>
+    <origin xyz="${front_axle_x} ${right_y} ${wheel_z}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.6" upper="0.6" effort="20" velocity="1.5"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Front left wheel -->
+  <!-- ========================= -->
+  <link name="front_left_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${1.5 * mass_scale}"/>
+      <inertia
+        ixx="${0.02 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.02 * inertia_scale}" iyz="0.0"
+        izz="${0.02 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="front_left_wheel_joint" type="continuous">
+    <parent link="front_left_steer_link"/>
+    <child link="front_left_wheel"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Front right wheel -->
+  <!-- ========================= -->
+  <link name="front_right_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${1.5 * mass_scale}"/>
+      <inertia
+        ixx="${0.02 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.02 * inertia_scale}" iyz="0.0"
+        izz="${0.02 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="front_right_wheel_joint" type="continuous">
+    <parent link="front_right_steer_link"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Rear left wheel -->
+  <!-- ========================= -->
+  <link name="rear_left_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${1.5 * mass_scale}"/>
+      <inertia
+        ixx="${0.02 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.02 * inertia_scale}" iyz="0.0"
+        izz="${0.02 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="rear_left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_left_wheel"/>
+    <origin xyz="${rear_axle_x} ${left_y} ${wheel_z}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Rear right wheel -->
+  <!-- ========================= -->
+  <link name="rear_right_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${1.5 * mass_scale}"/>
+      <inertia
+        ixx="${0.02 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.02 * inertia_scale}" iyz="0.0"
+        izz="${0.02 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="rear_right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_right_wheel"/>
+    <origin xyz="${rear_axle_x} ${right_y} ${wheel_z}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Laser -->
+  <!-- ========================= -->
+  <link name="laser_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${laser_size} ${laser_size} ${laser_size}"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.2 0.2 1.0 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${laser_size} ${laser_size} ${laser_size}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${0.2 * mass_scale}"/>
+      <inertia
+        ixx="${0.001 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.001 * inertia_scale}" iyz="0.0"
+        izz="${0.001 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser_link"/>
+    <origin xyz="${0.35 * scale} 0 ${0.42 * scale}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Camera -->
+  <!-- ========================= -->
+  <xacro:property name="camera_size" value="${0.06 * scale}"/>
+
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${camera_size} ${camera_size} ${camera_size}"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1.0 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${camera_size} ${camera_size} ${camera_size}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${0.2 * mass_scale}"/>
+      <inertia
+        ixx="${0.001 * inertia_scale}" ixy="0.0" ixz="0.0"
+        iyy="${0.001 * inertia_scale}" iyz="0.0"
+        izz="${0.001 * inertia_scale}"/>
+    </inertial>
+  </link>
+
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${0.5 * scale} 0 ${0.42 * scale}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ========================= -->
+  <!-- Gazebo wheel friction -->
+  <!-- ========================= -->
+  <gazebo reference="front_left_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="front_right_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="rear_left_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="rear_right_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <!-- ========================= -->
+  <!-- Gazebo lidar -->
+  <!-- ========================= -->
+  <gazebo reference="laser_link">
+    <sensor name="laser_sensor" type="ray">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>10.0</update_rate>
+      <pose>0 0 0 0 0 0</pose>
+
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-1.5708</min_angle>
+            <max_angle>1.5708</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.2</min>
+          <max>10.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+
+      <plugin name="laser_plugin" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>laser_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+  
+    <!-- ========================= -->
+  <!-- Gazebo camera -->
+  <!-- ========================= -->
+  <gazebo reference="camera_link">
+    <sensor name="front_camera" type="camera">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>20.0</update_rate>
+      <pose>0 0 0 0 0 0</pose>
+
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>50.0</far>
+        </clip>
+      </camera>
+
+      <plugin name="camera_plugin" filename="libgazebo_ros_camera.so">
+        <ros>
+          <namespace>/camera</namespace>
+        </ros>
+        <frame_name>camera_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- ========================= -->
+  <!-- ros2_control -->
+  <!-- ========================= -->
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+
+    <joint name="front_left_steer_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="front_right_steer_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="rear_left_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="rear_right_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <robot_param>robot_description</robot_param>
+      <robot_param_node>robot_state_publisher</robot_param_node>
+      <parameters>$(find simple_avoidance_sim)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- ========================= -->
+  <!-- transmissions -->
+  <!-- ========================= -->
+  <transmission name="front_left_steer_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="front_left_steer_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="front_left_steer_motor">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="front_right_steer_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="front_right_steer_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="front_right_steer_motor">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="rear_left_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="rear_left_wheel_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="rear_left_wheel_motor">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="rear_right_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="rear_right_wheel_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="rear_right_wheel_motor">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+</robot>
