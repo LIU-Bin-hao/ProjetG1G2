@@ -30,6 +30,8 @@ setup(
         'ackermann_controller_node = simple_avoidance_sim.ackermann_controller_node:main',
         'goal_navigation_node = simple_avoidance_sim.goal_navigation_node:main',
         'road_detector = simple_avoidance_sim.road_detector:main',
+        'town_laser_avoidance_node = simple_avoidance_sim.town_laser_avoidance_node:main',
+        'black_road_follower_node = simple_avoidance_sim.black_road_follower_node:main',
     	],
     },
 )
